@@ -3,27 +3,18 @@ import "./style.css";
 import * as THREE from "three";
 
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import _ from "lodash-es";
 
-/**
- * Cursor
- */
-const cursor = {
-  x: 0,
-  y: 0,
-};
+import { GUI } from "lil-gui";
+const gui = new GUI();
+
 const sizes = {
   width: window.innerWidth,
   height: window.innerHeight,
 };
 
 /**
- * 事件处理
+ * 窗口重置
  */
-window.addEventListener("mousemove", (e) => {
-  cursor.x = _.divide(e.clientX, sizes.width) - 0.5;
-  cursor.y = _.divide(e.clientY, sizes.height) - 0.5;
-});
 window.addEventListener("resize", () => {
   sizes.width = window.innerWidth;
   sizes.height = window.innerHeight;
@@ -31,34 +22,34 @@ window.addEventListener("resize", () => {
   camera.aspect = sizes.width / sizes.height;
   camera.updateProjectionMatrix();
 });
-window.addEventListener("dblclick", () => {
-  const fullscreenElement =
-    document.fullscreenElement || document.webkitFullscreenElement;
-  if (!fullscreenElement) {
-    renderer.domElement.requestFullscreen();
-  } else {
-    document.exitFullscreen();
-  }
-});
 
-const aspectRatio = _.divide(sizes.width, sizes.height);
-// const camera = new THREE.OrthographicCamera(-3*aspectRatio,3*aspectRatio,3,-3,1,100)
+
 const scene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(120, aspectRatio, 0.1, 100);
+const camera = new THREE.PerspectiveCamera(120, sizes.width / sizes.height, 0.1, 100);
 
 const renderer = new THREE.WebGLRenderer();
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
 controls.enableDamping = true;
+const params = {}
+params.count = 1000
 
-const geometry = new THREE.BoxGeometry(1, 1, 1);
-
-const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-const cube = new THREE.Mesh(geometry, material);
-
-scene.add(cube);
+const generateGalaxy = () => {
+  const geometry = new THREE.BufferGeometry()
+  const positions = new Float32Array(params.count * 3)
+  for(let i=0;i<params.count;i++){
+    positions[i*3] = Math.random()
+    positions[i*3+1] = Math.random()
+    positions[i*3+2] = Math.random()
+  }
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  const material = new THREE.PointsMaterial()
+  const points = new THREE.Points(geometry, material)
+  scene.add(points)
+}
+generateGalaxy()
 
 camera.position.z = 2;
 
@@ -74,4 +65,4 @@ function animate() {
 
 //setAnimationLoop 参数接收一个回调函数，这个方法是为了替代原来的requestAnimationFrame
 renderer.setAnimationLoop(animate);
-document.querySelector("#app").appendChild(renderer.domElement);
+document.body.appendChild(renderer.domElement);
